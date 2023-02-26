@@ -12,6 +12,28 @@
 #include <stdio.h>
 
 #include "quash.h"
+#include "deque.h"
+
+
+IMPLEMENT_DEQUE_STRUCT(pidQ, pid_t);
+IMPLEMENT_DEQUE(pidQ, pid_t);
+PROTOTYPE_DEQUE(pidQ, pid_t)
+pidQ pidq;
+
+typedef struct Job
+{
+    int jobId;
+    char* command;
+    bool isBackground;
+    pidQ* pid_list;
+} Job;
+
+IMPLEMENT_DEQUE_STRUCT(jobQueue, struct Job);
+IMPLEMENT_DEQUE(jobQueue, struct Job);
+jobQueue jq;
+int currentJID = 1;
+
+static int pipes[2][2];
 
 // Remove this and all expansion calls to it
 /**
@@ -24,24 +46,6 @@
  * Interface Functions
  ***************************************************************************/
 
-IMPLEMENT_DEQUE(pidQ, pid_t);
-IMPLEMENT_DEQUE_STRUCT(pidQ, pid_t);
-PROTOTYPE_DEQUE(pidQm, pid_t);
-
-typedef struct Job{
-  int jobid;
-  char* command;
-  bool isBackground;
-  pidQ * pid_list;
-} Job;
-
-IMPLEMENT_DEQUE(JobQueue, Job);
-IMPLEMENT_DEQUE_STRUCT(JobQueue, Job);
-
-
-
-
-
 // Return a string containing the current working directory.
 char* get_current_directory(bool* should_free) {
   // TODO: Get the current working directory. This will fix the prompt path.
@@ -49,11 +53,15 @@ char* get_current_directory(bool* should_free) {
   // IMPLEMENT_ME();
 
   char* cwd = malloc(sizeof(char)*1024);
-
+  getcwd(cwd, 1024);
   // Change this to true if necessary
-  *should_free = false;
-  
-  return getcwd(cwd, 1024);
+  *should_free = true;
+  if(cwd != NULL){
+    return cwd;
+  }
+  else{
+    return NULL;
+  } 
 }
 
 // Returns the value of an environment variable env_var
@@ -76,7 +84,6 @@ void check_jobs_bg_status() {
   // jobs. This function should remove jobs from the jobs queue once all
   // processes belonging to a job have completed.
   IMPLEMENT_ME();
- 
 
   // TODO: Once jobs are implemented, uncomment and fill the following line
   // print_job_bg_complete(job_id, pid, cmd);
@@ -118,13 +125,10 @@ void run_generic(GenericCommand cmd) {
   // (void) args; // Silence unused variable warning
 
   // TODO: Implement run generic
-  IMPLEMENT_ME();
-  printf("HELLO!!");
-  fflush(stdout);
+  // IMPLEMENT_ME();
   execvp(exec, args);
 
   perror("ERROR: Failed to execute program");
-}
 
 // Print strings
 void run_echo(EchoCommand cmd) {
@@ -140,7 +144,7 @@ void run_echo(EchoCommand cmd) {
     printf("%s", str[i]);
     i++;
   }
-  print("\n");
+  printf("\n");
 
   // TODO: Implement echo
   //IMPLEMENT_ME();
@@ -161,13 +165,14 @@ void run_export(ExportCommand cmd) {
 
   // TODO: Implement export.
   // HINT: This should be quite simple.
-  IMPLEMENT_ME();
+  // IMPLEMENT_ME();
+  setenv(env_var, val, 1);
 }
 
 // Changes the current working directory
 void run_cd(CDCommand cmd) {
   // Get the directory name
-  const char* curDir = 
+  const char* curDir = get_current_directory(false);
   const char* newDir = cmd.dir;
 
   // Check if the directory is valid
@@ -176,15 +181,18 @@ void run_cd(CDCommand cmd) {
     return;
   }
   
-  chdir(newDir);
-  setenv("OLD_PWD", oldDir, 1)
-  setenv("PWD", newDir, 1)
+  
+  
   // TODO: Change directory
+  chdir(newDir);
 
   // TODO: Update the PWD environment variable to be the new current working
   // directory and optionally update OLD_PWD environment variable to be the old
   // working directory.
-  IMPLEMENT_ME();
+  setenv("OLD_PWD", curDir, 1);
+  setenv("PWD", newDir, 1);
+
+  // IMPLEMENT_ME();
 }
 
 // Sends a signal to all processes contained in a job
@@ -339,9 +347,6 @@ void create_process(CommandHolder holder) {
 
   // TODO: Setup pipes, redirects, and new process
   IMPLEMENT_ME();
-
-
-    int previous_pipe = (pipeEndIndex)
 
   //parent_run_command(holder.cmd); // This should be done in the parent branch of
                                   // a fork
