@@ -26,28 +26,23 @@
 
 // Return a string containing the current working directory.
 char* get_current_directory(bool* should_free) {
-  // TODO: Get the current working directory. This will fix the prompt path.
-  // HINT: This should be pretty simple
-  IMPLEMENT_ME();
-
-  // Change this to true if necessary
-  *should_free = false;
-
-  return "get_current_directory()";
+  char* cwd = getcwd(NULL, 0); // getcwd allocates memory dynamically
+  if (cwd == NULL) {
+    // handle error
+    return NULL;
+  }
+  *should_free = true;
+  return cwd;
 }
 
 // Returns the value of an environment variable env_var
 const char* lookup_env(const char* env_var) {
-  // TODO: Lookup environment variables. This is required for parser to be able
-  // to interpret variables from the command line and display the prompt
-  // correctly
-  // HINT: This should be pretty simple
-  IMPLEMENT_ME();
-
-  // TODO: Remove warning silencers
-  (void) env_var; // Silence unused variable warning
-
-  return "???";
+  const char* value = getenv(env_var);
+  if (value == NULL) {
+    // handle error
+    return NULL;
+  }
+  return value;
 }
 
 // Check the status of background jobs
@@ -92,13 +87,9 @@ void run_generic(GenericCommand cmd) {
   char* exec = cmd.args[0];
   char** args = cmd.args;
 
-  // TODO: Remove warning silencers
-  (void) exec; // Silence unused variable warning
-  (void) args; // Silence unused variable warning
+  execvp(exec, args);
 
-  // TODO: Implement run generic
-  IMPLEMENT_ME();
-
+  // if execvp returns, an error has occurred
   perror("ERROR: Failed to execute program");
 }
 
@@ -108,13 +99,12 @@ void run_echo(EchoCommand cmd) {
   // string is always NULL) list of strings.
   char** str = cmd.args;
 
-  // TODO: Remove warning silencers
-  (void) str; // Silence unused variable warning
-
-  // TODO: Implement echo
-  IMPLEMENT_ME();
-
+  for (int i = 0; str[i] != NULL; i++) {
+    printf("%s ", str[i]);
+  }
   // Flush the buffer before returning
+  printf("\n");
+
   fflush(stdout);
 }
 
@@ -124,13 +114,9 @@ void run_export(ExportCommand cmd) {
   const char* env_var = cmd.env_var;
   const char* val = cmd.val;
 
-  // TODO: Remove warning silencers
-  (void) env_var; // Silence unused variable warning
-  (void) val;     // Silence unused variable warning
-
-  // TODO: Implement export.
-  // HINT: This should be quite simple.
-  IMPLEMENT_ME();
+  if (setenv(env_var, val, 1) != 0) {
+    perror("setenv");
+  }
 }
 
 // Changes the current working directory
@@ -165,11 +151,17 @@ void run_kill(KillCommand cmd) {
   IMPLEMENT_ME();
 }
 
-
 // Prints the current working directory to stdout
 void run_pwd() {
-  // TODO: Print the current working directory
-  IMPLEMENT_ME();
+  // Print the current working directory
+  bool should_free;
+  char* str = get_current_directory(&should_free);
+  printf("%s\n", str);
+
+  if(should_free)
+  {
+    free(str);
+  }
 
   // Flush the buffer before returning
   fflush(stdout);
@@ -324,22 +316,42 @@ void run_script(CommandHolder* holders) {
   }
 
   CommandType type;
+  Job current_job = new_Job();
 
   // Run all commands in the `holder` array
   for (int i = 0; (type = get_command_holder_type(holders[i])) != EOC; ++i)
     create_process(holders[i]);
 
-  if (!(holders[0].flags & BACKGROUND)) {
+  if (!(holders[0].flags & BACKGROUND) )
+  {
     // Not a background Job
-    // TODO: Wait for all processes under the job to complete
-    IMPLEMENT_ME();
-  }
-  else {
-    // A background job.
-    // TODO: Push the new job to the job queue
-    IMPLEMENT_ME();
+    // Wait for all processes under the job to complete
+    while ( !is_empty_job_process_queue_t(&current_job.process_queue) )
+    {
+      int status;
+      if (
+          waitpid(peek_back_job_process_queue_t(&current_job.process_queue),
+                  &status, 0) != -1)
+      {
+        pop_back_job_process_queue_t(&current_job.process_queue);
+      }
+    }
 
-    // TODO: Once jobs are implemented, uncomment and fill the following line
-    // print_job_bg_start(job_id, pid, cmd);
+    destroy_job(&current_job);
+  }
+  else
+  {
+    // A background job.
+    // Push the new job to the job queue
+    current_job.is_background = true;
+    current_job.cmd = get_command_string();
+    current_job.job_id = job_id++;
+    push_back_background_job_queue_t(&background_queue, current_job);
+
+    print_job_bg_start(
+                        current_job.job_id,
+                        peek_front_job_process_queue_t(&current_job.process_queue),
+                        current_job.cmd
+                      );
   }
 }
