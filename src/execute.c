@@ -12,6 +12,28 @@
 #include <stdio.h>
 
 #include "quash.h"
+#include "deque.h"
+
+
+IMPLEMENT_DEQUE_STRUCT(pidQ, pid_t);
+IMPLEMENT_DEQUE(pidQ, pid_t);
+PROTOTYPE_DEQUE(pidQ, pid_t)
+pidQ pidq;
+
+typedef struct Job
+{
+    int jobId;
+    char* command;
+    bool isBackground;
+    pidQ* pid_list;
+} Job;
+
+IMPLEMENT_DEQUE_STRUCT(jobQueue, struct Job);
+IMPLEMENT_DEQUE(jobQueue, struct Job);
+jobQueue jq;
+int currentJID = 1;
+static int pip1[2];
+static int pip2[2];
 
 // Remove this and all expansion calls to it
 /**
@@ -28,12 +50,18 @@
 char* get_current_directory(bool* should_free) {
   // TODO: Get the current working directory. This will fix the prompt path.
   // HINT: This should be pretty simple
-  IMPLEMENT_ME();
+  // IMPLEMENT_ME();
 
+  char* cwd = malloc(sizeof(char)*1024);
+  getcwd(cwd, 1024);
   // Change this to true if necessary
-  *should_free = false;
-
-  return "get_current_directory()";
+  *should_free = true;
+  if(cwd != NULL){
+    return cwd;
+  }
+  else{
+    return NULL;
+  } 
 }
 
 // Returns the value of an environment variable env_var
@@ -42,12 +70,12 @@ const char* lookup_env(const char* env_var) {
   // to interpret variables from the command line and display the prompt
   // correctly
   // HINT: This should be pretty simple
-  IMPLEMENT_ME();
+  // IMPLEMENT_ME();
 
   // TODO: Remove warning silencers
-  (void) env_var; // Silence unused variable warning
-
-  return "???";
+  // (void) env_var; // Silence unused variable warning
+  
+  return getenv(env_var);
 }
 
 // Check the status of background jobs
@@ -93,15 +121,15 @@ void run_generic(GenericCommand cmd) {
   char** args = cmd.args;
 
   // TODO: Remove warning silencers
-  (void) exec; // Silence unused variable warning
-  (void) args; // Silence unused variable warning
+  // (void) exec; // Silence unused variable warning
+  // (void) args; // Silence unused variable warning
 
   // TODO: Implement run generic
-  IMPLEMENT_ME();
+  // IMPLEMENT_ME();
+  execvp(exec, args);
 
   perror("ERROR: Failed to execute program");
 }
-
 // Print strings
 void run_echo(EchoCommand cmd) {
   // Print an array of strings. The args array is a NULL terminated (last
@@ -111,8 +139,15 @@ void run_echo(EchoCommand cmd) {
   // TODO: Remove warning silencers
   (void) str; // Silence unused variable warning
 
+  int i = 0;
+  while(str[i] != NULL){
+    printf("%s", str[i]);
+    i++;
+  }
+  printf("\n");
+
   // TODO: Implement echo
-  IMPLEMENT_ME();
+  //IMPLEMENT_ME();
 
   // Flush the buffer before returning
   fflush(stdout);
@@ -130,26 +165,34 @@ void run_export(ExportCommand cmd) {
 
   // TODO: Implement export.
   // HINT: This should be quite simple.
-  IMPLEMENT_ME();
+  // IMPLEMENT_ME();
+  setenv(env_var, val, 1);
 }
 
 // Changes the current working directory
 void run_cd(CDCommand cmd) {
   // Get the directory name
-  const char* dir = cmd.dir;
+  const char* curDir = get_current_directory(false);
+  const char* newDir = cmd.dir;
 
   // Check if the directory is valid
-  if (dir == NULL) {
+  if (newDir == NULL) {
     perror("ERROR: Failed to resolve path");
     return;
   }
-
+  
+  
+  
   // TODO: Change directory
+  chdir(newDir);
 
   // TODO: Update the PWD environment variable to be the new current working
   // directory and optionally update OLD_PWD environment variable to be the old
   // working directory.
-  IMPLEMENT_ME();
+  setenv("OLD_PWD", curDir, 1);
+  setenv("PWD", newDir, 1);
+
+  // IMPLEMENT_ME();
 }
 
 // Sends a signal to all processes contained in a job
@@ -169,8 +212,9 @@ void run_kill(KillCommand cmd) {
 // Prints the current working directory to stdout
 void run_pwd() {
   // TODO: Print the current working directory
-  IMPLEMENT_ME();
-
+  // IMPLEMENT_ME();
+  printf("%s\n", get_current_directory(false));
+  
   // Flush the buffer before returning
   fflush(stdout);
 }
@@ -179,6 +223,19 @@ void run_pwd() {
 void run_jobs() {
   // TODO: Print background jobs
   IMPLEMENT_ME();
+
+
+  Job current_job;
+
+  if(is_empty_jobQueue(&jq)){
+    return;
+  }
+
+  for(int i = 0; i < length_jobQueue(&jq); i++){
+    current_job = pop_front_jobQueue(&jq);
+    print_job(current_job.jobId, peek_front_pidQ(current_job.pid_list), current_job.command);
+    push_back_jobQueue(&jq, current_job);
+  }
 
   // Flush the buffer before returning
   fflush(stdout);
