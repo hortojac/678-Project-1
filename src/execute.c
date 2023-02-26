@@ -24,16 +24,36 @@
  * Interface Functions
  ***************************************************************************/
 
+IMPLEMENT_DEQUE(pidQ, pid_t);
+IMPLEMENT_DEQUE_STRUCT(pidQ, pid_t);
+PROTOTYPE_DEQUE(pidQm, pid_t);
+
+typedef struct Job{
+  int jobid;
+  char* command;
+  bool isBackground;
+  pidQ * pid_list;
+} Job;
+
+IMPLEMENT_DEQUE(JobQueue, Job);
+IMPLEMENT_DEQUE_STRUCT(JobQueue, Job);
+
+
+
+
+
 // Return a string containing the current working directory.
 char* get_current_directory(bool* should_free) {
   // TODO: Get the current working directory. This will fix the prompt path.
   // HINT: This should be pretty simple
-  IMPLEMENT_ME();
+  // IMPLEMENT_ME();
+
+  char* cwd = malloc(sizeof(char)*1024);
 
   // Change this to true if necessary
   *should_free = false;
-
-  return "get_current_directory()";
+  
+  return getcwd(cwd, 1024);
 }
 
 // Returns the value of an environment variable env_var
@@ -42,12 +62,12 @@ const char* lookup_env(const char* env_var) {
   // to interpret variables from the command line and display the prompt
   // correctly
   // HINT: This should be pretty simple
-  IMPLEMENT_ME();
+  // IMPLEMENT_ME();
 
   // TODO: Remove warning silencers
-  (void) env_var; // Silence unused variable warning
-
-  return "???";
+  // (void) env_var; // Silence unused variable warning
+  
+  return getenv(env_var);
 }
 
 // Check the status of background jobs
@@ -56,6 +76,7 @@ void check_jobs_bg_status() {
   // jobs. This function should remove jobs from the jobs queue once all
   // processes belonging to a job have completed.
   IMPLEMENT_ME();
+ 
 
   // TODO: Once jobs are implemented, uncomment and fill the following line
   // print_job_bg_complete(job_id, pid, cmd);
@@ -93,11 +114,14 @@ void run_generic(GenericCommand cmd) {
   char** args = cmd.args;
 
   // TODO: Remove warning silencers
-  (void) exec; // Silence unused variable warning
-  (void) args; // Silence unused variable warning
+  // (void) exec; // Silence unused variable warning
+  // (void) args; // Silence unused variable warning
 
   // TODO: Implement run generic
   IMPLEMENT_ME();
+  printf("HELLO!!");
+  fflush(stdout);
+  execvp(exec, args);
 
   perror("ERROR: Failed to execute program");
 }
@@ -111,8 +135,15 @@ void run_echo(EchoCommand cmd) {
   // TODO: Remove warning silencers
   (void) str; // Silence unused variable warning
 
+  int i = 0;
+  while(str[i] != NULL){
+    printf("%s", str[i]);
+    i++;
+  }
+  print("\n");
+
   // TODO: Implement echo
-  IMPLEMENT_ME();
+  //IMPLEMENT_ME();
 
   // Flush the buffer before returning
   fflush(stdout);
@@ -136,14 +167,18 @@ void run_export(ExportCommand cmd) {
 // Changes the current working directory
 void run_cd(CDCommand cmd) {
   // Get the directory name
-  const char* dir = cmd.dir;
+  const char* curDir = 
+  const char* newDir = cmd.dir;
 
   // Check if the directory is valid
-  if (dir == NULL) {
+  if (newDir == NULL) {
     perror("ERROR: Failed to resolve path");
     return;
   }
-
+  
+  chdir(newDir);
+  setenv("OLD_PWD", oldDir, 1)
+  setenv("PWD", newDir, 1)
   // TODO: Change directory
 
   // TODO: Update the PWD environment variable to be the new current working
@@ -304,6 +339,9 @@ void create_process(CommandHolder holder) {
 
   // TODO: Setup pipes, redirects, and new process
   IMPLEMENT_ME();
+
+
+    int previous_pipe = (pipeEndIndex)
 
   //parent_run_command(holder.cmd); // This should be done in the parent branch of
                                   // a fork
