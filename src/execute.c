@@ -48,32 +48,32 @@ static int pip2[2];
 
 // Return a string containing the current working directory.
 char* get_current_directory(bool* should_free) {
-  // TODO: Get the current working directory. This will fix the prompt path.
-  // HINT: This should be pretty simple
+  // Get the current working directory. This will fix the prompt path.
   char* cwd = malloc(sizeof(char)*1024);
   getcwd(cwd, 1024);
-  // Change this to true if necessary
-  *should_free = true;
+    
   if(cwd != NULL){
+    *should_free = true;
     return cwd;
   }
   else{
+    *should_free = false;
     return NULL;
   } 
 }
 
 // Returns the value of an environment variable env_var
 const char* lookup_env(const char* env_var) {
-  // TODO: Lookup environment variables. This is required for parser to be able
+  // Lookup environment variables. This is required for parser to be able
   // to interpret variables from the command line and display the prompt
   // correctly
-  // HINT: This should be pretty simple
-  // IMPLEMENT_ME();
-
-  // TODO: Remove warning silencers
   // (void) env_var; // Silence unused variable warning
-  
-  return getenv(env_var);
+  const char* value = getenv(env_var);
+  if (value != NULL) {
+    return value
+  }else{
+    return NULL;
+  }
 }
 
 // Check the status of background jobs
@@ -81,7 +81,7 @@ void check_jobs_bg_status() {
   // TODO: Check on the statuses of all processes belonging to all background
   // jobs. This function should remove jobs from the jobs queue once all
   // processes belonging to a job have completed.
-  // IMPLEMENT_ME();
+   IMPLEMENT_ME();
 
   // TODO: Once jobs are implemented, uncomment and fill the following line
   // print_job_bg_complete(job_id, pid, cmd);
@@ -118,12 +118,9 @@ void run_generic(GenericCommand cmd) {
   char* exec = cmd.args[0];
   char** args = cmd.args;
 
-  // TODO: Remove warning silencers
   // (void) exec; // Silence unused variable warning
   // (void) args; // Silence unused variable warning
 
-  // TODO: Implement run generic
-  // IMPLEMENT_ME();
   execvp(exec, args);
 
   perror("ERROR: Failed to execute program");
@@ -134,7 +131,6 @@ void run_echo(EchoCommand cmd) {
   // string is always NULL) list of strings.
   char** str = cmd.args;
 
-  // TODO: Remove warning silencers
   (void) str; // Silence unused variable warning
 
   int i = 0;
@@ -143,9 +139,6 @@ void run_echo(EchoCommand cmd) {
     i++;
   }
   printf("\n");
-
-  // TODO: Implement echo
-  //IMPLEMENT_ME();
 
   // Flush the buffer before returning
   fflush(stdout);
@@ -158,12 +151,9 @@ void run_export(ExportCommand cmd) {
   const char* val = cmd.val;
 
   // TODO: Remove warning silencers
-  (void) env_var; // Silence unused variable warning
-  (void) val;     // Silence unused variable warning
+  // (void) env_var; // Silence unused variable warning
+  // (void) val;     // Silence unused variable warning
 
-  // TODO: Implement export.
-  // HINT: This should be quite simple.
-  // IMPLEMENT_ME();
   setenv(env_var, val, 1);
 }
 
@@ -179,13 +169,11 @@ void run_cd(CDCommand cmd) {
     return;
   }
   
-  // TODO: Change directory
   chdir(newDir);
 
-  // TODO: Update the PWD environment variable to be the new current working
+  // Update the PWD environment variable to be the new current working
   // directory and optionally update OLD_PWD environment variable to be the old
   // working directory.
-  // IMPLEMENT_ME();
   setenv("OLD_PWD", curDir, 1);
   setenv("PWD", newDir, 1);
 
@@ -206,8 +194,15 @@ void run_kill(KillCommand cmd) {
 
 // Prints the current working directory to stdout
 void run_pwd() {
-  // TODO: Print the current working directory
-  IMPLEMENT_ME();
+  // Print the current working directory
+  bool should_free;
+  char* str = get_current_directory(&should_free);
+  printf("%s\n", str);
+
+  if(should_free)
+  {
+    free(str);
+  }
 
   // Flush the buffer before returning
   fflush(stdout);
@@ -215,10 +210,7 @@ void run_pwd() {
 
 // Prints all background jobs currently in the job list to stdout
 void run_jobs() {
-  // TODO: Print background jobs
-  IMPLEMENT_ME();
-
-
+  // Print background jobs
   Job current_job;
 
   if(is_empty_jobQueue(&jq)){
