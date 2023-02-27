@@ -32,8 +32,8 @@ IMPLEMENT_DEQUE_STRUCT(jobQueue, struct Job);
 IMPLEMENT_DEQUE(jobQueue, struct Job);
 jobQueue jq;
 int currentJID = 1;
-
-static int pipes[2][2];
+static int pip1[2];
+static int pip2[2];
 
 // Remove this and all expansion calls to it
 /**
@@ -50,8 +50,6 @@ static int pipes[2][2];
 char* get_current_directory(bool* should_free) {
   // TODO: Get the current working directory. This will fix the prompt path.
   // HINT: This should be pretty simple
-  // IMPLEMENT_ME();
-
   char* cwd = malloc(sizeof(char)*1024);
   getcwd(cwd, 1024);
   // Change this to true if necessary
@@ -83,7 +81,7 @@ void check_jobs_bg_status() {
   // TODO: Check on the statuses of all processes belonging to all background
   // jobs. This function should remove jobs from the jobs queue once all
   // processes belonging to a job have completed.
-  IMPLEMENT_ME();
+  // IMPLEMENT_ME();
 
   // TODO: Once jobs are implemented, uncomment and fill the following line
   // print_job_bg_complete(job_id, pid, cmd);
@@ -181,18 +179,16 @@ void run_cd(CDCommand cmd) {
     return;
   }
   
-  
-  
   // TODO: Change directory
   chdir(newDir);
 
   // TODO: Update the PWD environment variable to be the new current working
   // directory and optionally update OLD_PWD environment variable to be the old
   // working directory.
+  // IMPLEMENT_ME();
   setenv("OLD_PWD", curDir, 1);
   setenv("PWD", newDir, 1);
 
-  // IMPLEMENT_ME();
 }
 
 // Sends a signal to all processes contained in a job
@@ -208,7 +204,6 @@ void run_kill(KillCommand cmd) {
   IMPLEMENT_ME();
 }
 
-
 // Prints the current working directory to stdout
 void run_pwd() {
   // TODO: Print the current working directory
@@ -222,6 +217,19 @@ void run_pwd() {
 void run_jobs() {
   // TODO: Print background jobs
   IMPLEMENT_ME();
+
+
+  Job current_job;
+
+  if(is_empty_jobQueue(&jq)){
+    return;
+  }
+
+  for(int i = 0; i < length_jobQueue(&jq); i++){
+    current_job = pop_front_jobQueue(&jq);
+    print_job(current_job.jobId, peek_front_pidQ(current_job.pid_list), current_job.command);
+    push_back_jobQueue(&jq, current_job);
+  }
 
   // Flush the buffer before returning
   fflush(stdout);
