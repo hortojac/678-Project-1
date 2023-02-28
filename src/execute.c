@@ -17,7 +17,7 @@
 
 IMPLEMENT_DEQUE_STRUCT(pidQ, pid_t);
 IMPLEMENT_DEQUE(pidQ, pid_t);
-PROTOTYPE_DEQUE(pidQ, pid_t)
+PROTOTYPE_DEQUE(pidQ, pid_t);
 pidQ pidq;
 
 typedef struct Job
@@ -32,8 +32,14 @@ IMPLEMENT_DEQUE_STRUCT(jobQueue, struct Job);
 IMPLEMENT_DEQUE(jobQueue, struct Job);
 jobQueue jq;
 int currentJID = 1;
-static int pip1[2];
-static int pip2[2];
+
+int current_pipe = 0;
+int next_pipe = 1;
+
+
+
+//read is 0, write is 1
+static int pipes[2][2];
 
 // Remove this and all expansion calls to it
 /**
@@ -83,7 +89,7 @@ void check_jobs_bg_status() {
   // TODO: Check on the statuses of all processes belonging to all background
   // jobs. This function should remove jobs from the jobs queue once all
   // processes belonging to a job have completed.
-  IMPLEMENT_ME();
+  // IMPLEMENT_ME();
 
   // TODO: Once jobs are implemented, uncomment and fill the following line
   // print_job_bg_complete(job_id, pid, cmd);
@@ -360,7 +366,68 @@ void create_process(CommandHolder holder) {
   (void) r_app; // Silence unused variable warning
 
   // TODO: Setup pipes, redirects, and new process
-  IMPLEMENT_ME();
+  // IMPLEMENT_ME();
+
+   
+
+  // set the next pipe in the event that the
+  // process has a pipe_output
+  if (p_out){
+    pipe(pipes[next_pipe]);
+  }
+  // write is 1
+  // read is 0
+
+  pid_t pid = fork();
+  push_back_pidQ(&pidq, pid);
+
+  if(pid == 0){
+    //child process
+    if(p_in){
+      dup2(pipes[current_pipe][0], STDIN_FILENO);
+      close(pipes[current_pipe][0]);
+    }
+    if(p_out){
+      dup2(pipes[next_pipe][1], STDIN_FILENO);
+      close(pipes[next_pipe][1]);
+    }
+    if(r_in){
+      FILE* file = fopen(holder.redirect_out, "r");
+      dup2(fileno(file), STDIN_FILENO);
+      fclose(file);
+    }
+    if(r_out){
+      if(r_app){
+        FILE* file = fopen(holder.redirect_out, "a");
+        dup2(fileno(file), STDOUT_FILENO);
+        fclose(file);
+      }
+      else{
+        FILE* file = fopen(holder.redirect_out, "w");
+        dup2(fileno(file), STDOUT_FILENO);
+        fclose(file);
+      }
+    }
+
+
+    child_run_command(holder.cmd);
+    exit(0);
+  }
+  else{
+    //parent process
+    if(p_out){
+      close(pipes[next_pipe][1]);
+    }
+    
+    parent_run_command(holder.cmd); // This should be done in the parent branch of
+                                    // a fork
+
+    //need to incriment the pipes
+    current_pipe = (current_pipe + 1) % 2;
+    next_pipe = (next_pipe + 1) % 2;
+  }
+
+
 
   //parent_run_command(holder.cmd); // This should be done in the parent branch of
                                   // a fork
@@ -381,7 +448,7 @@ void run_script(CommandHolder* holders) {
   }
 
   CommandType type;
-
+  pidq = new_pidQ(1);
   // Run all commands in the `holder` array
   for (int i = 0; (type = get_command_holder_type(holders[i])) != EOC; ++i)
     create_process(holders[i]);
@@ -389,7 +456,13 @@ void run_script(CommandHolder* holders) {
   if (!(holders[0].flags & BACKGROUND)) {
     // Not a background Job
     // TODO: Wait for all processes under the job to complete
-    IMPLEMENT_ME();
+    // IMPLEMENT_ME();
+    while(!is_empty_pidQ(&pidq)){
+      pid_t tempPID = pop_front_pidQ(&pidq);
+      int status;
+      waitpid(tempPID, &status, 0);
+    }
+    destroy_pidQ(&pidq);
   }
   else {
     // A background job.
