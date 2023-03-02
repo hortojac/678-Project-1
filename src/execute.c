@@ -7,9 +7,12 @@
  * @note As you add things to this file you may want to change the method signature
  */
 
+#define _GNU_SOURCE
 #include "execute.h"
+#include "command.h"
 
 #include <stdio.h>
+#include <sys/wait.h>
 
 #include "quash.h"
 #include "deque.h"
@@ -25,7 +28,7 @@ typedef struct Job
     int jobId;
     char* command;
     bool isBackground;
-    pidQ* pid_list;
+    pidQ* pidq;
 } Job;
 
 IMPLEMENT_DEQUE_STRUCT(jobQueue, struct Job);
@@ -89,10 +92,34 @@ void check_jobs_bg_status()
   // TODO: Check on the statuses of all processes belonging to all background
   // jobs. This function should remove jobs from the jobs queue once all
   // processes belonging to a job have completed.
-  // IMPLEMENT_ME();
 
   // TODO: Once jobs are implemented, uncomment and fill the following line
   // print_job_bg_complete(job_id, pid, cmd);
+
+  int numOfJob = length_jobQueue(&jq);
+
+  // iterate over the number of jobs
+  for (int i = 0; i < numOfJob; i++)
+  {
+    Job currentJob = pop_front_jobQueue(&jq);
+    int numOfPids = length_pidQ(&currentJob.pidq);
+    pid_t atFront = peek_front_pidQ(&currentJob.pidq);
+    for (int j = 0; j < numOfPids; j++)
+    {
+      pid_t currentPid = pop_front_pidQ(&currentJob.pidq);
+      int theStatus;
+      if (waitpid(currentPid, &theStatus, 1) == 0)
+        push_back_pidQ(&currentJob.pidq, currentPid);
+    }
+    if (is_empty_pidQ(&currentJob.pidq))
+    {
+      print_job_bg_complete(currentJob.jobId, atFront, currentJob.command);
+    }
+    else
+    {
+      push_back_jobQueue(&jq, currentJob);
+    }
+  }
 }
 
 // Prints the job id number, the process id of the first process belonging to
@@ -244,7 +271,7 @@ void run_jobs() {
 
   for(int i = 0; i < length_jobQueue(&jq); i++){
     current_job = pop_front_jobQueue(&jq);
-    print_job(current_job.jobId, peek_front_pidQ(current_job.pid_list), current_job.command);
+    print_job(current_job.jobId, peek_front_pidQ(current_job.pidq), current_job.command);
     push_back_jobQueue(&jq, current_job);
   }
 
@@ -456,9 +483,9 @@ void run_script(CommandHolder* holders) {
     while(!is_empty_pidQ(&pidq)){
       pid_t tempPID = pop_front_pidQ(&pidq);
       int status;
-      if(waitpid(peek_back_pidq(&tempPID), &status, 0) != -1)
+      if(waitpid(peek_back_pidQ(&tempPID), &status, 0) != -1)
       {
-        pop_back_pidq(&tempPID);
+        pop_back_pidQ(&tempPID);
       }
     }
     destroy_pidQ(&pidq);
