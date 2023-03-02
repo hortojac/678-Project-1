@@ -458,18 +458,26 @@ void run_script(CommandHolder* holders) {
 
   if (!(holders[0].flags & BACKGROUND)) {
     // Not a background Job
-    // IMPLEMENT_ME();
     while(!is_empty_pidQ(&pidq)){
-      pid_t tempPID = pop_front_pidQ(&pidq);
+      pid_t pid = pop_front_pidQ(&pidq);
       int status;
-      if(waitpid(peek_back_pidq(&tempPID), &status, 0) != -1)
+      if(waitpid(pid, &status, 0) != -1)
       {
-        pop_back_pidq(&tempPID);
+        if(WIFEXITED(status)) {
+          printf("Process %d exited with status %d\n", pid, WEXITSTATUS(status));
+        }
+        else if(WIFSIGNALED(status)) {
+          printf("Process %d terminated by signal %d\n", pid, WTERMSIG(status));
+        }
       }
     }
     destroy_pidQ(&pidq);
   }
   else {
-    // TODO: Need to implement
+    // Background job
+    Job* job = new_job(holders, pidq);
+    add_job(job);
+    print_job_bg_start(job->jobId, job->pid_list, job->command);
   }
 }
+
