@@ -84,21 +84,15 @@ const char* lookup_env(const char* env_var) {
 // print_job_bg_complete(job_id, pid, cmd);
 
 // Check the status of background jobs
-void check_jobs_bg_status() {
-  Job* current_job = get_first_job();
-  Job* next_job;
-  while (current_job != NULL) {
-    next_job = get_next_job(current_job);
-    if (job_is_completed(current_job)) {
-      // Print job completion message
-      print_job_bg_complete(current_job->jobId, current_job->pid_list, current_job->command);
+void check_jobs_bg_status()
+{
+  // TODO: Check on the statuses of all processes belonging to all background
+  // jobs. This function should remove jobs from the jobs queue once all
+  // processes belonging to a job have completed.
+  // IMPLEMENT_ME();
 
-      // Remove job from job list
-      remove_job(current_job);
-      free_job(current_job);
-    }
-    current_job = next_job;
-  }
+  // TODO: Once jobs are implemented, uncomment and fill the following line
+  // print_job_bg_complete(job_id, pid, cmd);
 }
 
 // Prints the job id number, the process id of the first process belonging to
@@ -458,26 +452,19 @@ void run_script(CommandHolder* holders) {
 
   if (!(holders[0].flags & BACKGROUND)) {
     // Not a background Job
+    // IMPLEMENT_ME();
     while(!is_empty_pidQ(&pidq)){
-      pid_t pid = pop_front_pidQ(&pidq);
+      pid_t tempPID = pop_front_pidQ(&pidq);
       int status;
-      if(waitpid(pid, &status, 0) != -1)
+      if(waitpid(peek_back_pidq(&tempPID), &status, 0) != -1)
       {
-        if(WIFEXITED(status)) {
-          printf("Process %d exited with status %d\n", pid, WEXITSTATUS(status));
-        }
-        else if(WIFSIGNALED(status)) {
-          printf("Process %d terminated by signal %d\n", pid, WTERMSIG(status));
-        }
+        pop_back_pidq(&tempPID);
       }
     }
     destroy_pidQ(&pidq);
   }
   else {
-    // Background job
-    Job* job = new_job(holders, pidq);
-    add_job(job);
-    print_job_bg_start(job->jobId, job->pid_list, job->command);
+    // TODO: Need to implement
   }
 }
 
