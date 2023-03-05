@@ -197,7 +197,6 @@ void run_cd(CDCommand cmd) {
     perror("ERROR: Failed to resolve path");
     return;
   }
-  printf("HERE\n");
   fflush(stdout);
   
   // TODO: Change directory
@@ -223,20 +222,25 @@ void run_kill(KillCommand cmd) {
   (void) job_id; // Silence unused variable warning
 
   // TODO: Kill all processes associated with a background job
-  pidQ current_q;
   pid_t currentPID;
   Job j;
 
   for(int i = 0; i<length_jobQueue(&jq); i++){
     j = pop_front_jobQueue(&jq);
     if(j.jobId == job_id){
-      current_q = *j.pidq;
+      pidQ current_q = *j.pidq;
       while(length_pidQ(&current_q) != 0){
         currentPID = pop_front_pidQ(&current_q);
         kill(currentPID, signal);
       }
-      push_back_jobQueue(&jq, j);
     }
+    else{
+      push_back_jobQueue(&jq, j);
+      int len = length_jobQueue(&jq);
+      printf("PUSHBACK 3 : %i\n", len);
+    }
+
+    
   }
 }
 
@@ -259,15 +263,23 @@ void run_jobs() {
   // TODO: Print background jobs
 
   Job current_job;
-  if(is_empty_jobQueue(&jq) == 0){
+
+
+  int len = length_jobQueue(&jq);
+  printf("JB LENGTHS : %i\n", len);
+  if(is_empty_jobQueue(&jq)){
     printf("There are currently no jobs running\n");
     return;
   }
   for(int i = 0; i < length_jobQueue(&jq); i++){
-    printf("LOOP ITEM\n");
     current_job = pop_front_jobQueue(&jq);
     print_job(current_job.jobId, peek_front_pidQ(current_job.pidq), current_job.command);
+
+    
     push_back_jobQueue(&jq, current_job);
+
+    int len = length_jobQueue(&jq);
+    printf("PUSHBACK 2 : %i\n", len);
   }
 
   // Flush the buffer before returning
@@ -446,7 +458,6 @@ void create_process(CommandHolder holder, int r) {
     parent_run_command(holder.cmd); // This should be done in the parent branch of
                                     // a fork
 
-    //need to incriment the pipes
 
   }
 
@@ -466,14 +477,13 @@ void run_script(CommandHolder* holders) {
   }
 
   check_jobs_bg_status();
-
   if (get_command_holder_type(holders[0]) == EXIT &&
-      get_command_holder_type(holders[1]) == EOC) {
+    get_command_holder_type(holders[1]) == EOC) {
     end_main_loop();
     return;
   }
   CommandType type;
-  pidq = new_pidQ(1);
+  pidq = new_pidQ(0);
   // Run all commands in the `holder` array
   for (int i = 0; (type = get_command_holder_type(holders[i])) != EOC; ++i){
     create_process(holders[i], i);
@@ -504,9 +514,14 @@ void run_script(CommandHolder* holders) {
     else{
       fprintf(stderr, "No ID for the process.\n");
     }
+    
+    
     push_back_jobQueue(&jq, newJ);
 
+    int len = length_jobQueue(&jq);
+    printf("PUSHBACK 1 : %i\n", len);
     print_job_bg_start(newJ.jobId, peek_front_pidQ(newJ.pidq), newJ.command);
+
   }
 
 }
