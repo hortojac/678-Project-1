@@ -58,9 +58,7 @@ static int pipes[2][2];
 char* get_current_directory(bool* should_free) {
   // TODO: Get the current working directory. This will fix the prompt path.
   // HINT: This should be pretty simple
-  // IMPLEMENT_ME();
 
-  
   char* cwd = malloc(sizeof(char)*1024);
   *should_free = true;
   getcwd(cwd, 1024);
@@ -208,8 +206,6 @@ void run_cd(CDCommand cmd) {
   setenv("PWD", dir, 1);
   fflush(stdout);
   free (curDir);
-  
-  // IMPLEMENT_ME();
 }
 
 // Sends a signal to all processes contained in a job
@@ -236,18 +232,15 @@ void run_kill(KillCommand cmd) {
     }
     else{
       push_back_jobQueue(&jq, j);
-      int len = length_jobQueue(&jq);
-      printf("PUSHBACK 3 : %i\n", len);
+      // int len = length_jobQueue(&jq);
+      // printf("PUSHBACK 3 : %i\n", len);
     }
-
-    
   }
 }
 
 // Prints the current working directory to stdout
 void run_pwd() {
   // TODO: Print the current working directory
-  // IMPLEMENT_ME();
   bool free_mem;
   free_mem = false;
   char * dir = get_current_directory(&free_mem);
@@ -265,8 +258,8 @@ void run_jobs() {
   Job current_job;
 
 
-  int len = length_jobQueue(&jq);
-  printf("JB LENGTHS : %i\n", len);
+  // int len = length_jobQueue(&jq);
+  // printf("JB LENGTHS : %i\n", len);
   if(is_empty_jobQueue(&jq)){
     printf("There are currently no jobs running\n");
     return;
@@ -275,13 +268,11 @@ void run_jobs() {
     current_job = pop_front_jobQueue(&jq);
     print_job(current_job.jobId, peek_front_pidQ(current_job.pidq), current_job.command);
 
-    
     push_back_jobQueue(&jq, current_job);
 
-    int len = length_jobQueue(&jq);
-    printf("PUSHBACK 2 : %i\n", len);
+    // int len = length_jobQueue(&jq);
+    // printf("PUSHBACK 2 : %i\n", len);
   }
-
   // Flush the buffer before returning
   fflush(stdout);
 }
@@ -457,10 +448,7 @@ void create_process(CommandHolder holder, int r) {
     
     parent_run_command(holder.cmd); // This should be done in the parent branch of
                                     // a fork
-
-
   }
-
   //parent_run_command(holder.cmd); // This should be done in the parent branch of
                                   // a fork
   //child_run_command(holder.cmd); // This should be done in the child branch of a fork
@@ -514,15 +502,12 @@ void run_script(CommandHolder* holders) {
     else{
       fprintf(stderr, "No ID for the process.\n");
     }
-    
-    
+     
     push_back_jobQueue(&jq, newJ);
 
-    int len = length_jobQueue(&jq);
-    printf("PUSHBACK 1 : %i\n", len);
+    // int len = length_jobQueue(&jq);
+    // printf("PUSHBACK 1 : %i\n", len);
     print_job_bg_start(newJ.jobId, peek_front_pidQ(newJ.pidq), newJ.command);
-
   }
-
 }
 
