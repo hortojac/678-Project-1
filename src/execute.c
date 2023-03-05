@@ -37,8 +37,8 @@ jobQueue jq;
 int currentJID = 1;
 bool new_job = true;
 
-int current_pipe = 0;
-int next_pipe = 1;
+// int current_pipe = 0;
+// int next_pipe = 1;
 
 //read is 0, write is 1
 static int pipes[2][2];
@@ -87,16 +87,16 @@ void check_jobs_bg_status()
   for (int i = 0; i < numOfJob; i++)
   {
     Job currentJob = pop_front_jobQueue(&jq);
-    int numOfPids = length_pidQ(&currentJob.pidq);
-    pid_t atFront = peek_front_pidQ(&currentJob.pidq);
+    int numOfPids = length_pidQ(currentJob.pidq);
+    pid_t atFront = peek_front_pidQ(currentJob.pidq);
     for (int j = 0; j < numOfPids; j++)
     {
-      pid_t currentPid = pop_front_pidQ(&currentJob.pidq);
+      pid_t currentPid = pop_front_pidQ(currentJob.pidq);
       int theStatus;
       if (waitpid(currentPid, &theStatus, 1) == 0)
-        push_back_pidQ(&currentJob.pidq, currentPid);
+        push_back_pidQ(currentJob.pidq, currentPid);
     }
-    if (is_empty_pidQ(&currentJob.pidq))
+    if (is_empty_pidQ(currentJob.pidq))
     {
       print_job_bg_complete(currentJob.jobId, atFront, currentJob.command);
     }
@@ -189,7 +189,6 @@ void run_cd(CDCommand cmd) {
     perror("ERROR: Failed to resolve path");
     return;
   }
-  printf("HERE\n");
   fflush(stdout);
   
   // TODO: Change directory
@@ -247,12 +246,10 @@ void run_jobs() {
   // TODO: Print background jobs
 
   Job current_job;
-  printf("HERE\n");
   if(is_empty_jobQueue(&jq) == 0){
     printf("There are currently no jobs running\n");
     return;
   }
-  printf("HERE1\n");
   for(int i = 0; i < length_jobQueue(&jq); i++){
     printf("LOOP ITEM\n");
     current_job = pop_front_jobQueue(&jq);
@@ -366,7 +363,7 @@ void parent_run_command(Command cmd) {
  *
  * @sa Command CommandHolder
  */
-void create_process(CommandHolder holder) {
+void create_process(CommandHolder holder, int r) {
   // Read the flags field from the parser
   bool p_in  = holder.flags & PIPE_IN;
   bool p_out = holder.flags & PIPE_OUT;
@@ -384,24 +381,27 @@ void create_process(CommandHolder holder) {
 
   // set the next pipe in the event that the
   // process has a pipe_output
+  int read = (r - 1) % 2;
+  int write = r % 2;
+
   if (p_out){
-    pipe(pipes[next_pipe]);
+    pipe(pipes[write]);
   }
   // write is 1
   // read is 0
-
+  
   pid_t pid = fork();
   push_back_pidQ(&pidq, pid);
 
   if(pid == 0){
     //child process
     if(p_in){
-      dup2(pipes[current_pipe][0], STDIN_FILENO);
-      close(pipes[current_pipe][0]);
+      dup2(pipes[read][0], STDIN_FILENO);
+      close(pipes[read][0]);
     }
     if(p_out){
-      dup2(pipes[next_pipe][1], STDIN_FILENO);
-      close(pipes[next_pipe][1]);
+      dup2(pipes[write][1], STDOUT_FILENO);
+      close(pipes[write][1]);
     }
     if(r_in){
       FILE* file = fopen(holder.redirect_out, "r");
@@ -427,15 +427,14 @@ void create_process(CommandHolder holder) {
   else{
     //parent process
     if(p_out){
-      close(pipes[next_pipe][1]);
+      close(pipes[write][1]);
     }
     
     parent_run_command(holder.cmd); // This should be done in the parent branch of
                                     // a fork
 
     //need to incriment the pipes
-    current_pipe = (current_pipe + 1) % 2;
-    next_pipe = (next_pipe + 1) % 2;
+
   }
 
   //parent_run_command(holder.cmd); // This should be done in the parent branch of
@@ -464,7 +463,7 @@ void run_script(CommandHolder* holders) {
   pidq = new_pidQ(1);
   // Run all commands in the `holder` array
   for (int i = 0; (type = get_command_holder_type(holders[i])) != EOC; ++i){
-    create_process(holders[i]);
+    create_process(holders[i], i);
   }
 
   if (!(holders[0].flags & BACKGROUND)) {    
