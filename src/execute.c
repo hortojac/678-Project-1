@@ -507,8 +507,6 @@ void run_script(CommandHolder* holders) {
     push_back_jobQueue(&jq, newJ);
 
     print_job_bg_start(newJ.jobId, peek_front_pidQ(newJ.pidq), newJ.command);
-
-    destroy_pidQ(&pidq);
   }
 
 }
