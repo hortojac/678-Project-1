@@ -10,6 +10,8 @@
 #include "execute.h"
 
 #include <stdio.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 
 #include "quash.h"
 #include "deque.h"
@@ -32,6 +34,7 @@ IMPLEMENT_DEQUE_STRUCT(jobQueue, struct Job);
 IMPLEMENT_DEQUE(jobQueue, struct Job);
 jobQueue jq;
 int currentJID = 1;
+bool new_job = true;
 
 int current_pipe = 0;
 int next_pipe = 1;
@@ -58,16 +61,11 @@ char* get_current_directory(bool* should_free) {
   // HINT: This should be pretty simple
   // IMPLEMENT_ME();
 
+  
   char* cwd = malloc(sizeof(char)*1024);
   getcwd(cwd, 1024);
-  // Change this to true if necessary
-  *should_free = true;
-  if(cwd != NULL){
-    return cwd;
-  }
-  else{
-    return NULL;
-  } 
+  return cwd;
+  // Change this to true if necessary 
 }
 
 // Returns the value of an environment variable env_var
@@ -151,12 +149,13 @@ void run_echo(EchoCommand cmd) {
     i++;
   }
   printf("\n");
-
   // TODO: Implement echo
   //IMPLEMENT_ME();
 
   // Flush the buffer before returning
   fflush(stdout);
+
+  
 }
 
 // Sets an environment variable
@@ -178,26 +177,27 @@ void run_export(ExportCommand cmd) {
 // Changes the current working directory
 void run_cd(CDCommand cmd) {
   // Get the directory name
-  const char* curDir = get_current_directory(false);
-  const char* newDir = cmd.dir;
-
+  char* curDir = get_current_directory(false);
+  char* dir = cmd.dir;
+  fflush(stdout);
   // Check if the directory is valid
-  if (newDir == NULL) {
+  if (dir == NULL) {
     perror("ERROR: Failed to resolve path");
     return;
   }
-  
-  
+  printf("HERE\n");
+  fflush(stdout);
   
   // TODO: Change directory
-  chdir(newDir);
-
+  chdir(dir);
   // TODO: Update the PWD environment variable to be the new current working
   // directory and optionally update OLD_PWD environment variable to be the old
   // working directory.
   setenv("OLD_PWD", curDir, 1);
-  setenv("PWD", newDir, 1);
-
+  setenv("PWD", dir, 1);
+  fflush(stdout);
+  free (curDir);
+  
   // IMPLEMENT_ME();
 }
 
@@ -211,7 +211,21 @@ void run_kill(KillCommand cmd) {
   (void) job_id; // Silence unused variable warning
 
   // TODO: Kill all processes associated with a background job
-  IMPLEMENT_ME();
+  pidQ current_q;
+  pid_t currentPID;
+  Job j;
+
+  for(int i = 0; i<length_jobQueue(&jq); i++){
+    j = pop_front_jobQueue(&jq);
+    if(j.jobId == job_id){
+      current_q = *j.pid_list;
+      while(length_pidQ(&current_q) != 0){
+        currentPID = pop_front_pidQ(&current_q);
+        kill(currentPID, signal);
+      }
+      push_back_jobQueue(&jq, j);
+    }
+  }
 }
 
 
@@ -219,7 +233,9 @@ void run_kill(KillCommand cmd) {
 void run_pwd() {
   // TODO: Print the current working directory
   // IMPLEMENT_ME();
-  printf("%s\n", get_current_directory(false));
+  char * dir = get_current_directory(false);
+  printf("%s\n", dir);
+  free(dir);
   
   // Flush the buffer before returning
   fflush(stdout);
@@ -232,12 +248,14 @@ void run_jobs() {
 
 
   Job current_job;
-
-  if(is_empty_jobQueue(&jq)){
+  printf("HERE\n");
+  if(is_empty_jobQueue(&jq) == 0){
+    printf("There are currently no jobs running\n");
     return;
   }
-
+  printf("HERE1\n");
   for(int i = 0; i < length_jobQueue(&jq); i++){
+    printf("LOOP ITEM\n");
     current_job = pop_front_jobQueue(&jq);
     print_job(current_job.jobId, peek_front_pidQ(current_job.pid_list), current_job.command);
     push_back_jobQueue(&jq, current_job);
@@ -359,16 +377,15 @@ void create_process(CommandHolder holder) {
                                                // is true
 
   // TODO: Remove warning silencers
-  (void) p_in;  // Silence unused variable warning
-  (void) p_out; // Silence unused variable warning
-  (void) r_in;  // Silence unused variable warning
-  (void) r_out; // Silence unused variable warning
-  (void) r_app; // Silence unused variable warning
+  // (void) p_in;  // Silence unused variable warning
+  // (void) p_out; // Silence unused variable warning
+  // (void) r_in;  // Silence unused variable warning
+  // (void) r_out; // Silence unused variable warning
+  // (void) r_app; // Silence unused variable warning
 
   // TODO: Setup pipes, redirects, and new process
   // IMPLEMENT_ME();
 
-   
 
   // set the next pipe in the event that the
   // process has a pipe_output
@@ -380,7 +397,7 @@ void create_process(CommandHolder holder) {
 
   pid_t pid = fork();
   push_back_pidQ(&pidq, pid);
-
+  
   if(pid == 0){
     //child process
     if(p_in){
@@ -439,6 +456,11 @@ void run_script(CommandHolder* holders) {
   if (holders == NULL)
     return;
 
+  if (new_job){
+     jq = new_jobQueue(0);
+     new_job = false;
+  }
+
   check_jobs_bg_status();
 
   if (get_command_holder_type(holders[0]) == EXIT &&
@@ -446,14 +468,14 @@ void run_script(CommandHolder* holders) {
     end_main_loop();
     return;
   }
-
   CommandType type;
   pidq = new_pidQ(1);
   // Run all commands in the `holder` array
-  for (int i = 0; (type = get_command_holder_type(holders[i])) != EOC; ++i)
+  for (int i = 0; (type = get_command_holder_type(holders[i])) != EOC; ++i){
     create_process(holders[i]);
+  }
 
-  if (!(holders[0].flags & BACKGROUND)) {
+  if (!(holders[0].flags & BACKGROUND)) {    
     // Not a background Job
     // TODO: Wait for all processes under the job to complete
     // IMPLEMENT_ME();
@@ -468,8 +490,21 @@ void run_script(CommandHolder* holders) {
     // A background job.
     // TODO: Push the new job to the job queue
     IMPLEMENT_ME();
+    // TODO: Once jobs are implemented, uncomment and fill the following line.
+    Job newJ;
+    newJ.jobId = currentJID;
+    currentJID++;
+    newJ.pid_list = &pidq;
+    newJ.command = get_command_string();
+    if(!is_empty_pidQ(&pidq)){
+      newJ.jobId = peek_back_pidQ(&pidq);
+    }
+    else{
+      fprintf(stderr, "No ID for the process.\n");
+    }
+    push_back_jobQueue(&jq, newJ);
 
-    // TODO: Once jobs are implemented, uncomment and fill the following line
-    // print_job_bg_start(job_id, pid, cmd);
+    print_job_bg_start(newJ.jobId, peek_front_pidQ(newJ.pid_list), newJ.command);
   }
+
 }
