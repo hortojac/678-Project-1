@@ -63,6 +63,7 @@ char* get_current_directory(bool* should_free) {
 
   
   char* cwd = malloc(sizeof(char)*1024);
+  *should_free = true;
   getcwd(cwd, 1024);
   return cwd;
   // Change this to true if necessary 
@@ -177,7 +178,9 @@ void run_export(ExportCommand cmd) {
 // Changes the current working directory
 void run_cd(CDCommand cmd) {
   // Get the directory name
-  char* curDir = get_current_directory(false);
+  bool free_mem;
+  free_mem = false;
+  char* curDir = get_current_directory(&free_mem);
   char* dir = cmd.dir;
   fflush(stdout);
   // Check if the directory is valid
@@ -233,7 +236,9 @@ void run_kill(KillCommand cmd) {
 void run_pwd() {
   // TODO: Print the current working directory
   // IMPLEMENT_ME();
-  char * dir = get_current_directory(false);
+  bool free_mem;
+  free_mem = false;
+  char * dir = get_current_directory(&free_mem);
   printf("%s\n", dir);
   free(dir);
   
@@ -244,18 +249,15 @@ void run_pwd() {
 // Prints all background jobs currently in the job list to stdout
 void run_jobs() {
   // TODO: Print background jobs
-  IMPLEMENT_ME();
+  // IMPLEMENT_ME();
 
 
   Job current_job;
-  printf("HERE\n");
   if(is_empty_jobQueue(&jq) == 0){
     printf("There are currently no jobs running\n");
     return;
   }
-  printf("HERE1\n");
   for(int i = 0; i < length_jobQueue(&jq); i++){
-    printf("LOOP ITEM\n");
     current_job = pop_front_jobQueue(&jq);
     print_job(current_job.jobId, peek_front_pidQ(current_job.pid_list), current_job.command);
     push_back_jobQueue(&jq, current_job);
@@ -489,7 +491,7 @@ void run_script(CommandHolder* holders) {
   else {
     // A background job.
     // TODO: Push the new job to the job queue
-    IMPLEMENT_ME();
+    // IMPLEMENT_ME();
     // TODO: Once jobs are implemented, uncomment and fill the following line.
     Job newJ;
     newJ.jobId = currentJID;
