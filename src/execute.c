@@ -56,10 +56,16 @@ static int pipes[2][2];
 
 // Return a string containing the current working directory.
 char* get_current_directory(bool* should_free) {
-  // Get the current working directory. This will fix the prompt path.
+  // TODO: Get the current working directory. This will fix the prompt path.
+  // HINT: This should be pretty simple
+  // IMPLEMENT_ME();
+
+  
   char* cwd = malloc(sizeof(char)*1024);
+  *should_free = true;
   getcwd(cwd, 1024);
   return cwd;
+  // Change this to true if necessary 
 }
 
 // Returns the value of an environment variable env_var
@@ -181,7 +187,9 @@ void run_export(ExportCommand cmd) {
 // Changes the current working directory
 void run_cd(CDCommand cmd) {
   // Get the directory name
-  char* curDir = get_current_directory(false);
+  bool free_mem;
+  free_mem = false;
+  char* curDir = get_current_directory(&free_mem);
   char* dir = cmd.dir;
   fflush(stdout);
   // Check if the directory is valid
@@ -189,6 +197,7 @@ void run_cd(CDCommand cmd) {
     perror("ERROR: Failed to resolve path");
     return;
   }
+  printf("HERE\n");
   fflush(stdout);
   
   // TODO: Change directory
@@ -200,6 +209,8 @@ void run_cd(CDCommand cmd) {
   setenv("PWD", dir, 1);
   fflush(stdout);
   free (curDir);
+  
+  // IMPLEMENT_ME();
 }
 
 // Sends a signal to all processes contained in a job
@@ -233,7 +244,9 @@ void run_kill(KillCommand cmd) {
 void run_pwd() {
   // TODO: Print the current working directory
   // IMPLEMENT_ME();
-  char * dir = get_current_directory(false);
+  bool free_mem;
+  free_mem = false;
+  char * dir = get_current_directory(&free_mem);
   printf("%s\n", dir);
   free(dir);
   
