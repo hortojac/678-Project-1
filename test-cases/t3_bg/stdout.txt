@@ -1,0 +1,3 @@
+Background job started: [1923786]	#PID#	delayed_echo hello 2 & 
+Background job started: [1923832]	#PID#	echo world & 
+world

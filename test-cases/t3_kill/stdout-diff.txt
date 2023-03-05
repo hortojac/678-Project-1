@@ -1,4 +1,7 @@
-0a1,3
+1c1,2
+< Background job started: [1923822]	#PID#	delayed_echo Hello World! 1 & 
+---
 > Background job started: [1]	#PID#	delayed_echo Hello World! 1 & 
 > Completed: 	[1]	#PID#	delayed_echo Hello World! 1 & 
-> This should be the last line
+3d3
+< Hello World!

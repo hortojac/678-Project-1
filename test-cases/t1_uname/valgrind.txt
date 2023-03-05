@@ -1,34 +1,21 @@
-==2893019== Memcheck, a memory error detector
-==2893019== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
-==2893019== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
-==2893019== Command: /home/j242h828/EECS_678/Project1/quash/quash
-==2893019== 
-==2893019== 
-==2893019== Process terminating with default action of signal 6 (SIGABRT)
-==2893019==    at 0x4910A7C: __pthread_kill_implementation (pthread_kill.c:44)
-==2893019==    by 0x4910A7C: __pthread_kill_internal (pthread_kill.c:78)
-==2893019==    by 0x4910A7C: pthread_kill@@GLIBC_2.34 (pthread_kill.c:89)
-==2893019==    by 0x48BC475: raise (raise.c:26)
-==2893019==    by 0x48A27F2: abort (abort.c:79)
-==2893019==    by 0x48A271A: __assert_fail_base.cold (assert.c:92)
-==2893019==    by 0x48B3E95: __assert_fail (assert.c:101)
-==2893019==    by 0x10BFF0: length_jobQueue (execute.c:35)
-==2893019==    by 0x10CD88: check_jobs_bg_status (execute.c:99)
-==2893019==    by 0x10D73A: run_script (execute.c:466)
-==2893019==    by 0x10A996: main (quash.c:121)
-==2893019== 
-==2893019== HEAP SUMMARY:
-==2893019==     in use at exit: 25,914 bytes in 6 blocks
-==2893019==   total heap usage: 9 allocs, 3 frees, 26,175 bytes allocated
-==2893019== 
-==2893019== LEAK SUMMARY:
-==2893019==    definitely lost: 0 bytes in 0 blocks
-==2893019==    indirectly lost: 0 bytes in 0 blocks
-==2893019==      possibly lost: 0 bytes in 0 blocks
-==2893019==    still reachable: 25,914 bytes in 6 blocks
-==2893019==         suppressed: 0 bytes in 0 blocks
-==2893019== Reachable blocks (those to which a pointer was found) are not shown.
-==2893019== To see them, rerun with: --leak-check=full --show-leak-kinds=all
-==2893019== 
-==2893019== For lists of detected and suppressed errors, rerun with: -s
-==2893019== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+==1923369== Memcheck, a memory error detector
+==1923369== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==1923369== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
+==1923369== Command: /home/j242h828/EECS_678/Project1/quash/quash
+==1923369== 
+==1923369== 
+==1923369== HEAP SUMMARY:
+==1923369==     in use at exit: 0 bytes in 1 blocks
+==1923369==   total heap usage: 10 allocs, 9 frees, 26,006 bytes allocated
+==1923369== 
+==1923369== LEAK SUMMARY:
+==1923369==    definitely lost: 0 bytes in 0 blocks
+==1923369==    indirectly lost: 0 bytes in 0 blocks
+==1923369==      possibly lost: 0 bytes in 0 blocks
+==1923369==    still reachable: 0 bytes in 1 blocks
+==1923369==         suppressed: 0 bytes in 0 blocks
+==1923369== Reachable blocks (those to which a pointer was found) are not shown.
+==1923369== To see them, rerun with: --leak-check=full --show-leak-kinds=all
+==1923369== 
+==1923369== For lists of detected and suppressed errors, rerun with: -s
+==1923369== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
