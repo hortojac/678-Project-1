@@ -1,67 +1,37 @@
-==1923613== Memcheck, a memory error detector
-==1923613== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
-==1923613== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
-==1923613== Command: /home/j242h828/EECS_678/Project1/quash/quash
-==1923613== 
-==1923820== 
-==1923820== HEAP SUMMARY:
-==1923820==     in use at exit: 193 bytes in 6 blocks
-==1923820==   total heap usage: 25 allocs, 19 frees, 37,143 bytes allocated
-==1923820== 
-==1923820== 16 bytes in 2 blocks are definitely lost in loss record 2 of 4
-==1923820==    at 0x4848899: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
-==1923820==    by 0x10B47F: __on_push_pidQ (execute.c:22)
-==1923820==    by 0x10B6DF: push_back_pidQ (execute.c:22)
-==1923820==    by 0x10D5D2: create_process (execute.c:407)
-==1923820==    by 0x10D932: run_script (execute.c:479)
-==1923820==    by 0x10A976: main (quash.c:121)
-==1923820== 
-==1923820== LEAK SUMMARY:
-==1923820==    definitely lost: 16 bytes in 2 blocks
-==1923820==    indirectly lost: 0 bytes in 0 blocks
-==1923820==      possibly lost: 0 bytes in 0 blocks
-==1923820==    still reachable: 177 bytes in 4 blocks
-==1923820==         suppressed: 0 bytes in 0 blocks
-==1923820== Reachable blocks (those to which a pointer was found) are not shown.
-==1923820== To see them, rerun with: --leak-check=full --show-leak-kinds=all
-==1923820== 
-==1923820== For lists of detected and suppressed errors, rerun with: -s
-==1923820== ERROR SUMMARY: 1 errors from 1 contexts (suppressed: 0 from 0)
-quash: src/execute.c:22: length_pidQ: Assertion `deq->data != NULL' failed.
-==1923613== 
-==1923613== Process terminating with default action of signal 6 (SIGABRT)
-==1923613==    at 0x4910A7C: __pthread_kill_implementation (pthread_kill.c:44)
-==1923613==    by 0x4910A7C: __pthread_kill_internal (pthread_kill.c:78)
-==1923613==    by 0x4910A7C: pthread_kill@@GLIBC_2.34 (pthread_kill.c:89)
-==1923613==    by 0x48BC475: raise (raise.c:26)
-==1923613==    by 0x48A27F2: abort (abort.c:79)
-==1923613==    by 0x48A271A: __assert_fail_base.cold (assert.c:92)
-==1923613==    by 0x48B3E95: __assert_fail (assert.c:101)
-==1923613==    by 0x10B085: length_pidQ (execute.c:22)
-==1923613==    by 0x10CD6E: check_jobs_bg_status (execute.c:96)
-==1923613==    by 0x10D832: run_script (execute.c:468)
-==1923613==    by 0x10A976: main (quash.c:121)
-==1923613== 
-==1923613== HEAP SUMMARY:
-==1923613==     in use at exit: 34,291 bytes in 12 blocks
-==1923613==   total heap usage: 30 allocs, 18 frees, 38,664 bytes allocated
-==1923613== 
-==1923613== 16 bytes in 2 blocks are definitely lost in loss record 2 of 10
-==1923613==    at 0x4848899: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
-==1923613==    by 0x10B47F: __on_push_pidQ (execute.c:22)
-==1923613==    by 0x10B6DF: push_back_pidQ (execute.c:22)
-==1923613==    by 0x10D5D2: create_process (execute.c:407)
-==1923613==    by 0x10D932: run_script (execute.c:479)
-==1923613==    by 0x10A976: main (quash.c:121)
-==1923613== 
-==1923613== LEAK SUMMARY:
-==1923613==    definitely lost: 16 bytes in 2 blocks
-==1923613==    indirectly lost: 0 bytes in 0 blocks
-==1923613==      possibly lost: 0 bytes in 0 blocks
-==1923613==    still reachable: 34,275 bytes in 10 blocks
-==1923613==         suppressed: 0 bytes in 0 blocks
-==1923613== Reachable blocks (those to which a pointer was found) are not shown.
-==1923613== To see them, rerun with: --leak-check=full --show-leak-kinds=all
-==1923613== 
-==1923613== For lists of detected and suppressed errors, rerun with: -s
-==1923613== ERROR SUMMARY: 1 errors from 1 contexts (suppressed: 0 from 0)
+==1068383== Memcheck, a memory error detector
+==1068383== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==1068383== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
+==1068383== Command: /home/j242h828/EECS_678/Project1/quash/quash
+==1068383== 
+==1068661== 
+==1068661== HEAP SUMMARY:
+==1068661==     in use at exit: 321 bytes in 6 blocks
+==1068661==   total heap usage: 25 allocs, 19 frees, 37,323 bytes allocated
+==1068661== 
+==1068661== LEAK SUMMARY:
+==1068661==    definitely lost: 0 bytes in 0 blocks
+==1068661==    indirectly lost: 0 bytes in 0 blocks
+==1068661==      possibly lost: 0 bytes in 0 blocks
+==1068661==    still reachable: 321 bytes in 6 blocks
+==1068661==         suppressed: 0 bytes in 0 blocks
+==1068661== Reachable blocks (those to which a pointer was found) are not shown.
+==1068661== To see them, rerun with: --leak-check=full --show-leak-kinds=all
+==1068661== 
+==1068661== For lists of detected and suppressed errors, rerun with: -s
+==1068661== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+==1068383== 
+==1068383== HEAP SUMMARY:
+==1068383==     in use at exit: 313 bytes in 5 blocks
+==1068383==   total heap usage: 35 allocs, 30 frees, 40,027 bytes allocated
+==1068383== 
+==1068383== LEAK SUMMARY:
+==1068383==    definitely lost: 0 bytes in 0 blocks
+==1068383==    indirectly lost: 0 bytes in 0 blocks
+==1068383==      possibly lost: 0 bytes in 0 blocks
+==1068383==    still reachable: 313 bytes in 5 blocks
+==1068383==         suppressed: 0 bytes in 0 blocks
+==1068383== Reachable blocks (those to which a pointer was found) are not shown.
+==1068383== To see them, rerun with: --leak-check=full --show-leak-kinds=all
+==1068383== 
+==1068383== For lists of detected and suppressed errors, rerun with: -s
+==1068383== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)

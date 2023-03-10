@@ -1,3 +1,12 @@
-Background job started: [1923755]	#PID#	delayed_echo Hello World 1 & 
-Background job started: [1923808]	#PID#	sleep 1 & 
-There are currently no jobs running
+Background job started: [1068599]	#PID#	delayed_echo Hello World 1 & 
+Background job started: [1068641]	#PID#	sleep 1 & 
+[1068599]	#PID#	delayed_echo Hello World 1 & 
+[1068641]	#PID#	sleep 1 & 
+Hello World
+Completed: 	[1068599]	#PID#	delayed_echo Hello World 1 & 
+Completed: 	[1068641]	#PID#	sleep 1 & 
+dir1
+dir2
+dir3
+lorem_ipsum.txt
+valgrind_expected.txt
