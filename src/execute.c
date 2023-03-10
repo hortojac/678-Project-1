@@ -28,7 +28,7 @@ typedef struct Job
     int jobId;
     char* command;
     bool isBackground;
-    pidQ* pidq;
+    pidQ pidq;
 } Job;
 
 IMPLEMENT_DEQUE_STRUCT(jobQueue, struct Job);
@@ -91,16 +91,16 @@ void check_jobs_bg_status()
   for (int i = 0; i < numOfJob; i++)
   {
     Job currentJob = pop_front_jobQueue(&jq);
-    int numOfPids = length_pidQ(currentJob.pidq);
-    pid_t atFront = peek_front_pidQ(currentJob.pidq);
+    int numOfPids = length_pidQ(&currentJob.pidq);
+    pid_t atFront = peek_front_pidQ(&currentJob.pidq);
     for (int j = 0; j < numOfPids; j++)
     {
-      pid_t currentPid = pop_front_pidQ(currentJob.pidq);
+      pid_t currentPid = pop_front_pidQ(&currentJob.pidq);
       int theStatus;
       if (waitpid(currentPid, &theStatus, 1) == 0)
-        push_back_pidQ(currentJob.pidq, currentPid);
+        push_back_pidQ(&currentJob.pidq, currentPid);
     }
-    if (is_empty_pidQ(currentJob.pidq))
+    if (is_empty_pidQ(&currentJob.pidq))
     {
       print_job_bg_complete(currentJob.jobId, atFront, currentJob.command);
     }
@@ -224,7 +224,7 @@ void run_kill(KillCommand cmd) {
   for(int i = 0; i<length_jobQueue(&jq); i++){
     j = pop_front_jobQueue(&jq);
     if(j.jobId == job_id){
-      pidQ current_q = *j.pidq;
+      pidQ current_q = j.pidq;
       while(length_pidQ(&current_q) != 0){
         currentPID = pop_front_pidQ(&current_q);
         kill(currentPID, signal);
@@ -266,7 +266,7 @@ void run_jobs() {
   }
   for(int i = 0; i < length_jobQueue(&jq); i++){
     current_job = pop_front_jobQueue(&jq);
-    print_job(current_job.jobId, peek_front_pidQ(current_job.pidq), current_job.command);
+    print_job(current_job.jobId, peek_front_pidQ(&current_job.pidq), current_job.command);
 
     push_back_jobQueue(&jq, current_job);
 
@@ -494,7 +494,7 @@ void run_script(CommandHolder* holders) {
     Job newJ;
     newJ.jobId = currentJID;
     currentJID++;
-    newJ.pidq = &pidq;
+    newJ.pidq = pidq;
     newJ.command = get_command_string();
     if(!is_empty_pidQ(&pidq)){
       newJ.jobId = peek_back_pidQ(&pidq);
@@ -507,7 +507,7 @@ void run_script(CommandHolder* holders) {
 
     // int len = length_jobQueue(&jq);
     // printf("PUSHBACK 1 : %i\n", len);
-    print_job_bg_start(newJ.jobId, peek_front_pidQ(newJ.pidq), newJ.command);
+    print_job_bg_start(newJ.jobId, peek_front_pidQ(&newJ.pidq), newJ.command);
   }
 }
 
